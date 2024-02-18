@@ -14,12 +14,12 @@ namespace GTH.API.Controllers
 		}
 		[HttpPost]
 		[Route("RegistrarUsuario")]
-		public ActionResult RegistrarUsuario(UsuarioDto usuarioDto)
+		public ActionResult RegistrarUsuario(RegistroUsuarioDto registroUsuarioDto)
 		{
 			var usuario = new Usuario();
 
-			usuario.Nome = usuarioDto.Nome;
-			usuario.SobreNome = usuarioDto.SobreNome;
+			usuario.NOME = registroUsuarioDto.Nome;
+			usuario.SOBRENOME = registroUsuarioDto.SobreNome;
 
 			if (usuario is null) { return BadRequest(); }
 
