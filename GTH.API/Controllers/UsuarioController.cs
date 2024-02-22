@@ -12,6 +12,14 @@ namespace GTH.API.Controllers
 		{
 			_context = context;
 		}
+
+		[HttpGet]
+		[Route("todosusuarios")]
+		public ActionResult<IEnumerable<Usuario>> BuscarTodosUsuarios()
+		{
+			return _context.Usuarios.ToList();
+		}
+
 		[HttpPost]
 		[Route("RegistrarUsuario")]
 		public ActionResult RegistrarUsuario(RegistroUsuarioDto registroUsuarioDto)
