@@ -2,6 +2,8 @@
 using GTH.API.DTOs;
 using GTH.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 
 namespace GTH.API.Controllers
 {
@@ -15,31 +17,93 @@ namespace GTH.API.Controllers
 
 		[HttpGet]
 		[Route("todosusuarios")]
-		public ActionResult<IEnumerable<Usuario>> BuscarTodosUsuarios()
+		public ActionResult<IEnumerable<UsuarioDto>> BuscarTodosUsuarios()
 		{
-			return _context.Usuarios.ToList();
+			try
+			{
+				var usuarios = _context.Usuarios.AsNoTracking().ToList();
+
+				if (usuarios is null) { return NotFound("Não foi possível recuperar os dados dos USUÁRIOS em nossa base de dados!"); }
+				var retornoUsuarios = new List<UsuarioDto>();
+
+				foreach (var item in usuarios)
+				{
+					retornoUsuarios.Add(new UsuarioDto()
+					{
+						ID = item.ID,
+						NOME = item.NOME,
+						SOBRENOME = item.SOBRENOME,
+						CPFCNPJ = item.CPFCNPJ,
+						EMAIL = item.EMAIL,
+						ADMINISTRADOR = item.ADMINISTRADOR
+					});
+				}
+
+				return retornoUsuarios;
+
+			}
+			catch (Exception)
+			{
+
+				return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um problema ao tratar a sua solicitação.");
+			}
+
+		}
+
+		[HttpGet("obterusuario/{id}", Name = "detalheusuario")]
+		public ActionResult<UsuarioDto> BuscarUsuarioPorId(int id)
+		{
+			var usuario = _context.Usuarios.FirstOrDefault(x => x.ID == id);
+
+			if (usuario == null)
+			{
+				return NotFound($"Não foi possível recuperar os dados da USUÁRIO = {id} em nossa base de dados!");
+			}
+
+			var usuarioRetorno = new UsuarioDto
+			{
+				ID = usuario.ID,
+				NOME = usuario.NOME,
+				SOBRENOME = usuario.SOBRENOME,
+				EMAIL = usuario.EMAIL,
+				ADMINISTRADOR = usuario.ADMINISTRADOR
+			};
+
+			return Ok(usuarioRetorno);
 		}
 
 		[HttpPost]
-		[Route("RegistrarUsuario")]
+		[Route("registrarusuario")]
 		public ActionResult RegistrarUsuario(RegistroUsuarioDto registroUsuarioDto)
 		{
 			try
 			{
-				var usuario = new Usuario();
 
-				usuario.NOME = string.IsNullOrEmpty(registroUsuarioDto.Nome) ? string.Empty : registroUsuarioDto.Nome;
-				usuario.SOBRENOME = string.IsNullOrEmpty(registroUsuarioDto.SobreNome) ? string.Empty : registroUsuarioDto.SobreNome;
-				usuario.ENDERECO = string.IsNullOrEmpty(registroUsuarioDto.Endereco) ? string.Empty : registroUsuarioDto.Endereco;
-				usuario.CPFCNPJ = string.IsNullOrEmpty(registroUsuarioDto.CPFCNPJ) ? string.Empty : registroUsuarioDto.CPFCNPJ;
-				usuario.EMAIL = string.IsNullOrEmpty(registroUsuarioDto.Email)? string.Empty : registroUsuarioDto.Email;
-				usuario.SENHA = string.IsNullOrEmpty(registroUsuarioDto.Senha)? string.Empty : registroUsuarioDto.Senha;
-				usuario.ADMINISTRADOR = registroUsuarioDto.Admin ? true : false;
+				if (registroUsuarioDto.Senha != registroUsuarioDto.ConfirmaSenha)
+					return BadRequest("As senhas informadas não estão iguais");
 
-				if (usuario is null) { return BadRequest(); }
 
-				_context.Usuarios.Add(usuario);
+				var registroUsuario = new Usuario
+				{
+					NOME = registroUsuarioDto.Nome,
+					SOBRENOME = registroUsuarioDto.SobreNome,
+					ENDERECO = registroUsuarioDto.Endereco,
+					CPFCNPJ = registroUsuarioDto.CPFCNPJ,
+					EMAIL = registroUsuarioDto.Email,
+					SENHA = registroUsuarioDto.Senha,
+					ADMINISTRADOR = registroUsuarioDto.Admin
+				};
+
+				if (registroUsuario is null) { return BadRequest(); }
+
+				_context.Usuarios.Add(registroUsuario);
 				_context.SaveChanges();
+
+				registroUsuarioDto.Senha = "";
+				registroUsuarioDto.ConfirmaSenha = "";
+
+				return new CreatedAtRouteResult("detalheusuario", new { ID = registroUsuario.ID }, registroUsuarioDto);
+
 			}
 			catch (Exception ex)
 			{
@@ -48,7 +112,6 @@ namespace GTH.API.Controllers
 				return BadRequest();
 			}
 
-			return Ok();
 		}
 	}
 }
