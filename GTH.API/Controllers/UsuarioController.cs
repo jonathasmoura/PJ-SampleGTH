@@ -1,13 +1,16 @@
 ﻿using GTH.API.DataContexts;
 using GTH.API.DTOs;
 using GTH.API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 
 namespace GTH.API.Controllers
 {
-	public class UsuarioController : Controller
+	[AllowAnonymous]
+	[Route("api/usuarios")]
+	public class UsuarioController : ControllerBase
 	{
 		private readonly PJGTHContext _context;
 		public UsuarioController(PJGTHContext context)
@@ -74,7 +77,7 @@ namespace GTH.API.Controllers
 
 		[HttpPost]
 		[Route("registrarusuario")]
-		public ActionResult RegistrarUsuario(RegistroUsuarioDto registroUsuarioDto)
+		public ActionResult RegistrarUsuario([FromBody]RegistroUsuarioDto registroUsuarioDto)
 		{
 			try
 			{
