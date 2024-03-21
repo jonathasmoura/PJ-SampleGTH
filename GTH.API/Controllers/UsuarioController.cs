@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 namespace GTH.API.Controllers
 {
 	[AllowAnonymous]
-	[Route("api/usuarios")]
+	[Route("api/usuarios/")]
 	public class UsuarioController : ControllerBase
 	{
 		private readonly PJGTHContext _context;
@@ -94,7 +94,7 @@ namespace GTH.API.Controllers
 					CPFCNPJ = registroUsuarioDto.CPFCNPJ,
 					EMAIL = registroUsuarioDto.Email,
 					SENHA = registroUsuarioDto.Senha,
-					ADMINISTRADOR = registroUsuarioDto.Admin
+					ADMINISTRADOR = registroUsuarioDto.Admin 
 				};
 
 				if (registroUsuario is null) { return BadRequest(); }
